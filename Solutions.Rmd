@@ -92,7 +92,6 @@ For larger𝜇, the average in rejected samples converges with the true 𝜇, re
 ```{R}
 hom_data = read.csv("homicide-data.csv")|>
   janitor::clean_names()
-view(hom_data)
 ```
 
 Description of the data: Contains 52179 observations and has 12 variables. These observations are the records of the homicide variables and each variable gives us the information of the corresponding case. Example, city variable gives us the city where the incident was recorded, victim_sex gives us the sex of the victim of the homicide etc.
@@ -115,6 +114,7 @@ balt_data = hom_data2 |>
   filter(city_state == "Baltimore, MD")
 balt_test = prop.test(balt_data$unsolved_homicides, balt_data$total_homicides) |>
   broom::tidy()
+conf_int_balt = c(balt_test$conf.low[1], balt_test$conf.high[1])
 conf_int_df <- data.frame( "Confidence Interval" = conf_int_balt, row.names = c("Low", "High") ) # Print the confidence interval as a table
 print("The confidence interval for Baltimore, MD is:") 
 knitr::kable(conf_int_df)
