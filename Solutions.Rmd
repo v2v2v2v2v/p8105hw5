@@ -97,7 +97,16 @@ view(hom_data)
 Description of the data: Contains 52179 observations and has 12 variables. These observations are the records of the homicide variables and each variable gives us the information of the corresponding case. Example, city variable gives us the city where the incident was recorded, victim_sex gives us the sex of the victim of the homicide etc.
 
 ```{R}
+hom_data2 = hom_data |>
+  mutate(city_state = paste(city, state, sep = ", ")) |>
+  group_by(city_state) |>
+  summarize(
+    total_homicides = n(),
+    unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest")))
 
+hom_data2 |> 
+  head(8) |> #showing some observations to show that our code words
+  knitr::kable()
 ```
 
 ```{R}
