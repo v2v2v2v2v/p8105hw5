@@ -1,25 +1,8 @@
----
-title: "Solutions for hw 5"
-output: github_document
-date: "2024-11-16"
----
+Solutions for hw 5
+================
+2024-11-16
 
-```{r setup, include=FALSE}
-library(broom)
-library(dplyr)
-library(ggplot2)
-library(purrr)
-library(tidyverse)
-
-# Initialize parameters
-n <- 30
-sigma <- 5
-mu_0 <- 0
-iterations <- 5000
-alpha <- 0.05
-```
-
-```{R}
+``` r
 # Function to simulate data and compute statistics
 generate_data <- function(mean_value, sample_size, sd, num_iterations) {
   data <- tibble(
@@ -50,7 +33,7 @@ simulation_results <- bind_rows(lapply(1:length(mu_values), function(i) {
 }))
 ```
 
-```{R}
+``` r
 # Calculate power (rejection rate) for each true mean value
 power_data <- simulation_results |>
   group_by(true_mean) |>
@@ -64,9 +47,14 @@ ggplot(power_data, aes(x = true_mean, y = power)) +
   theme_minimal()
 ```
 
-As the true value of mu increases (the effect size becomes larger), the power of the test also increases. Reason: Larger effect sizes are easier to detect, making it more likely that the test will correctly reject the null hypothesis.
+![](Solutions_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
-```{R}
+As the true value of mu increases (the effect size becomes larger), the
+power of the test also increases. Reason: Larger effect sizes are easier
+to detect, making it more likely that the test will correctly reject the
+null hypothesis.
+
+``` r
 # Calculate average estimates
 avg_estimates <- simulation_results |>
   group_by(true_mean) |>
@@ -86,18 +74,29 @@ ggplot(avg_estimates, aes(x = true_mean)) +
   theme_minimal()
 ```
 
-For high value of mu: Both averages converge. (From what we see this occurs for mu => 4)
-The sample average𝜇cap across tests where the null hypothesis is rejected is not approximately equal to the true 𝜇 for small 𝜇 values due to selection bias. The rejection of null hypothesis selects for larger observed effects.
-For larger𝜇, the average in rejected samples converges with the true 𝜇, reflecting the significant effect size that consistently leads to the null hypothesis being rejected.
+![](Solutions_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-```{R}
+For high value of mu: Both averages converge. (From what we see this
+occurs for mu =\> 4) The sample average𝜇cap across tests where the null
+hypothesis is rejected is not approximately equal to the true 𝜇 for
+small 𝜇 values due to selection bias. The rejection of null hypothesis
+selects for larger observed effects. For larger𝜇, the average in
+rejected samples converges with the true 𝜇, reflecting the significant
+effect size that consistently leads to the null hypothesis being
+rejected.
+
+``` r
 hom_data = read.csv("homicide-data.csv")|>
   janitor::clean_names()
 ```
 
-Description of the data: Contains 52179 observations and has 12 variables. These observations are the records of the homicide variables and each variable gives us the information of the corresponding case. Example, city variable gives us the city where the incident was recorded, victim_sex gives us the sex of the victim of the homicide etc.
+Description of the data: Contains 52179 observations and has 12
+variables. These observations are the records of the homicide variables
+and each variable gives us the information of the corresponding case.
+Example, city variable gives us the city where the incident was
+recorded, victim_sex gives us the sex of the victim of the homicide etc.
 
-```{R}
+``` r
 hom_data2 = hom_data |>
   mutate(city_state = paste(city, state, sep = ", ")) |>
   group_by(city_state) |>
@@ -110,7 +109,18 @@ hom_data2 |>
   knitr::kable()
 ```
 
-```{R}
+| city_state      | total_homicides | unsolved_homicides |
+|:----------------|----------------:|-------------------:|
+| Albuquerque, NM |             378 |                146 |
+| Atlanta, GA     |             973 |                373 |
+| Baltimore, MD   |            2827 |               1825 |
+| Baton Rouge, LA |             424 |                196 |
+| Birmingham, AL  |             800 |                347 |
+| Boston, MA      |             614 |                310 |
+| Buffalo, NY     |             521 |                319 |
+| Charlotte, NC   |             687 |                206 |
+
+``` r
 balt_data = hom_data2 |>
   filter(city_state == "Baltimore, MD")
 balt_test = prop.test(balt_data$unsolved_homicides, balt_data$total_homicides) |>
@@ -118,10 +128,20 @@ balt_test = prop.test(balt_data$unsolved_homicides, balt_data$total_homicides) |
 conf_int_balt = c(balt_test$conf.low[1], balt_test$conf.high[1])
 conf_int_df <- data.frame( "Confidence Interval" = conf_int_balt, row.names = c("Low", "High") ) # Print the confidence interval as a table
 print("The confidence interval for Baltimore, MD is:") 
+```
+
+    ## [1] "The confidence interval for Baltimore, MD is:"
+
+``` r
 knitr::kable(conf_int_df)
 ```
 
-```{R}
+|      | Confidence.Interval |
+|:-----|--------------------:|
+| Low  |           0.6275625 |
+| High |           0.6631599 |
+
+``` r
 # Apply prop.test for each city and tidy the results
 results2 = hom_data2 |>
   mutate(
@@ -132,10 +152,27 @@ results2 = hom_data2 |>
   janitor::clean_names() |>
   arrange(desc(estimate)) |>
   mutate(city_state = factor(city_state, levels = city_state))
+```
+
+    ## Warning: There was 1 warning in `mutate()`.
+    ## ℹ In argument: `test_results = map2(...)`.
+    ## Caused by warning in `prop.test()`:
+    ## ! Chi-squared approximation may be incorrect
+
+``` r
 head(results2, n = 5)|>
   knitr::kable()
 ```
-```{R}
+
+| city_state         |  estimate |  conf_low | conf_high |
+|:-------------------|----------:|----------:|----------:|
+| Chicago, IL        | 0.7358627 | 0.7239959 | 0.7473998 |
+| New Orleans, LA    | 0.6485356 | 0.6231048 | 0.6731615 |
+| Baltimore, MD      | 0.6455607 | 0.6275625 | 0.6631599 |
+| San Bernardino, CA | 0.6181818 | 0.5576628 | 0.6753422 |
+| Buffalo, NY        | 0.6122841 | 0.5687990 | 0.6540879 |
+
+``` r
 # Create the plot with error bars
 ggplot(results2, aes(x = city_state, y = estimate)) +
   geom_point(size = 3, color = "cyan") +
@@ -145,6 +182,6 @@ ggplot(results2, aes(x = city_state, y = estimate)) +
        y = "Estimated Proportion of Unsolved Homicides") +
   theme_minimal() +
   coord_flip()  # Flip coordinates for better readability
-
-
 ```
+
+![](Solutions_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
