@@ -118,3 +118,16 @@ conf_int_balt = c(balt_test$conf.low[1], balt_test$conf.high[1])
 print("The confidence interval is:")
 paste(conf_int_balt)
 ```
+
+```{R}
+# Apply prop.test for each city and tidy the results
+results2 = hom_data2 |>
+  mutate(
+    test_results = map2(unsolved_homicides, total_homicides, ~ broom::tidy(prop.test(.x, .y)))
+  ) |>
+  unnest(test_results) |>
+  select(city_state, estimate, conf.low, conf.high) |>
+  janitor::clean_names() |>
+  arrange(desc(estimate))
+```
+
