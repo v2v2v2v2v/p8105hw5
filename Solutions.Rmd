@@ -114,9 +114,9 @@ balt_data = hom_data2 |>
   filter(city_state == "Baltimore, MD")
 balt_test = prop.test(balt_data$unsolved_homicides, balt_data$total_homicides) |>
   broom::tidy()
-conf_int_balt = c(balt_test$conf.low[1], balt_test$conf.high[1])
-print("The confidence interval is:")
-paste(conf_int_balt)
+conf_int_df <- data.frame( "Confidence Interval" = conf_int_balt, row.names = c("Low", "High") ) # Print the confidence interval as a table
+print("The confidence interval for Baltimore, MD is:") 
+knitr::kable(conf_int_df)
 ```
 
 ```{R}
@@ -130,7 +130,8 @@ results2 = hom_data2 |>
   janitor::clean_names() |>
   arrange(desc(estimate)) |>
   mutate(city_state = factor(city_state, levels = city_state))
-print(head(results2, n = 5))
+head(results2, n = 5)|>
+  knitr::kable()
 ```
 ```{R}
 # Create the plot with error bars
