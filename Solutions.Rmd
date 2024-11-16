@@ -1,45 +1,89 @@
 ---
-title: "Untitled"
+title: "Solutions for hw 5"
 output: github_document
-date: "2024-11-03"
+date: "2024-11-16"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 library(broom)
-library(tidyverse)
-```
+library(dplyr)
+library(ggplot2)
+library(purrr)
 
+# Initialize parameters
+n <- 30
+sigma <- 5
+mu_0 <- 0
+iterations <- 5000
+alpha <- 0.05
+```
 
 ```{R}
-# Function for power analysis
-power_analysis <- function(mu, n = 30, sigma = 5, alpha = 0.05, num_simulations = 5000) {
-  set.seed(123)  # for reproducibility
+# Function to simulate data and compute statistics
+generate_data <- function(mean_value, sample_size, sd, num_iterations) {
+  data <- tibble(
+    iteration = 1:num_iterations,
+    sample = replicate(num_iterations, rnorm(sample_size, mean = mean_value, sd = sd), simplify = FALSE)
+  ) |>
+  mutate(
+    sample_mean = map_dbl(sample, mean),
+    test_result = map(sample, ~ broom::tidy(t.test(.x, mu = 0))),
+    p_value = map_dbl(test_result, "p.value")
+  )
   
-  p_values <- numeric(num_simulations)
-  
-  for (i in 1:num_simulations) {
-    x <- rnorm(n, mean = mu, sd = sigma)
-    t_test <- t.test(x, mu = 0)
-    test_result <- broom::tidy(t_test)
-    p_values[i] <- test_result$p.value
-  }
-  
-  power <- mean(p_values < alpha)
-  return(power)
+  return(data)
 }
 
-# Run simulations for a range of μ values
-mu_values <- 0:6
-power_values <- sapply(mu_values, power_analysis)
+# Specify mean values for the simulations
+mu_values <- c(0, 1, 2, 3, 4, 5, 6)
 
-# Create a data frame for plotting
-plot_data_p <- data.frame(mu = mu_values, power = power_values)
+# Run simulations for each mean value
+simulations <- lapply(mu_values, function(mu) {
+  generate_data(mu, n, sigma, iterations)
+})
 
-# Plotting
-ggplot(plot_data_p, aes(x = mu, y = power)) +
+# Combine results into a single data frame
+simulation_results <- bind_rows(lapply(1:length(mu_values), function(i) {
+  simulations[[i]] |>
+    mutate(true_mean = mu_values[i])
+}))
+```
+
+```{R}
+# Calculate power (rejection rate) for each true mean value
+power_data <- simulation_results |>
+  group_by(true_mean) |>
+  summarize(power = mean(p_value < alpha))
+
+# Plot power vs. true mean
+ggplot(power_data, aes(x = true_mean, y = power)) +
   geom_line() +
   geom_point() +
-  labs(x = "True Value of μ", y = "Power of the Test", title = "Power Analysis of One-Sample t-Test") +
+  labs(title = "Power of the Test vs. True Mean", x = "True Mean (μ)", y = "Power (Rejection Rate)") +
   theme_minimal()
 ```
+
+As the true value of mu increases (the effect size becomes larger), the power of the test also increases. Reason: Larger effect sizes are easier to detect, making it more likely that the test will correctly reject the null hypothesis.
+
+```{R}
+# Calculate average estimates
+avg_estimates <- simulation_results |>
+  group_by(true_mean) |>
+  summarize(
+    avg_estimate_all = mean(sample_mean),
+    avg_estimate_rejected = mean(sample_mean[p_value < alpha])
+  )
+
+# Plot average estimates
+ggplot(avg_estimates, aes(x = true_mean)) +
+  geom_line(aes(y = avg_estimate_all, color = "All Samples"), linetype = "dotted") +
+  geom_point(aes(y = avg_estimate_all, color = "All Samples")) +
+  geom_line(aes(y = avg_estimate_rejected, color = "Rejected Samples"), linetype = "solid") +
+  geom_point(aes(y = avg_estimate_rejected, color = "Rejected Samples")) +
+  labs(title = "Average Estimates of μ̂ vs. True Mean", x = "True Mean (μ)", y = "Average Estimate of μ̂", color = "Sample Group") +
+  scale_color_manual(values = c("All Samples" = "blue", "Rejected Samples" = "red")) +
+  theme_minimal()
+```
+
+For high value of mu: Both averages converge.
+For low value of mu: Rejected samples show higher means due to selection bias—tests that reject typically have larger sample means.
