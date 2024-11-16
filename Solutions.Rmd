@@ -110,6 +110,11 @@ hom_data2 |>
 ```
 
 ```{R}
-
-
+balt_data = hom_data2 |>
+  filter(city_state == "Baltimore, MD")
+balt_test = prop.test(balt_data$unsolved_homicides, balt_data$total_homicides) |>
+  broom::tidy()
+conf_int_balt = c(balt_test$conf.low[1], balt_test$conf.high[1])
+print("The confidence interval is:")
+paste(conf_int_balt)
 ```
