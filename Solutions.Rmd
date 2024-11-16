@@ -129,5 +129,18 @@ results2 = hom_data2 |>
   select(city_state, estimate, conf.low, conf.high) |>
   janitor::clean_names() |>
   arrange(desc(estimate))
+print(head(results2, n = 5))
 ```
+```{R}
+# Create the plot with error bars
+ggplot(results2, aes(x = city_state, y = estimate)) +
+  geom_point(size = 3, color = "blue") +
+  geom_errorbar(aes(ymin = conf_low, ymax = conf_high), width = 0.2, color = "red") +
+  labs(title = "Proportion of Unsolved Homicides by City",
+       x = "City",
+       y = "Estimated Proportion of Unsolved Homicides") +
+  theme_minimal() +
+  coord_flip()  # Flip coordinates for better readability
 
+
+```
