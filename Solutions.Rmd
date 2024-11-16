@@ -85,8 +85,9 @@ ggplot(avg_estimates, aes(x = true_mean)) +
   theme_minimal()
 ```
 
-For high value of mu: Both averages converge.
-For low value of mu: Rejected samples show higher means due to selection bias—tests that reject typically have larger sample means.
+For high value of mu: Both averages converge. (From what we see this occurs for mu => 4)
+The sample average𝜇cap across tests where the null hypothesis is rejected is not approximately equal to the true 𝜇 for small 𝜇 values due to selection bias. The rejection of null hypothesis selects for larger observed effects.
+For larger𝜇, the average in rejected samples converges with the true 𝜇, reflecting the significant effect size that consistently leads to the null hypothesis being rejected.
 
 ```{R}
 hom_data = read.csv("homicide-data.csv")|>
