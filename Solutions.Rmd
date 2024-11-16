@@ -87,3 +87,8 @@ ggplot(avg_estimates, aes(x = true_mean)) +
 
 For high value of mu: Both averages converge.
 For low value of mu: Rejected samples show higher means due to selection bias—tests that reject typically have larger sample means.
+
+```{R}
+hom_data = read.csv("homicide-data.csv")
+view(hom_data)
+```
