@@ -89,6 +89,18 @@ For high value of mu: Both averages converge.
 For low value of mu: Rejected samples show higher means due to selection bias—tests that reject typically have larger sample means.
 
 ```{R}
-hom_data = read.csv("homicide-data.csv")
+hom_data = read.csv("homicide-data.csv")|>
+  janitor::clean_names()
 view(hom_data)
+```
+
+Description of the data: Contains 52179 observations and has 12 variables. These observations are the records of the homicide variables and each variable gives us the information of the corresponding case. Example, city variable gives us the city where the incident was recorded, victim_sex gives us the sex of the victim of the homicide etc.
+
+```{R}
+
+```
+
+```{R}
+
+
 ```
